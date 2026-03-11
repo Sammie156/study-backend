@@ -4,20 +4,20 @@ from typing import List     # Typing hints
 
 DATA_DIR = Path("data")
 
-# Get all the PDF files inside the data directory
 def get_pdf_files() -> List[Path]:
-    # Basically scan the directory where data is stored
-    # And then return a list of all PDFs' path there
+    """
+    Get all the PDF files inside the data directory
+    """
     return list(DATA_DIR.glob("*.pdf"))
 
-# Extract the text from a single PDF
 def extract_pdf(file_path: Path) -> str:
-    # Configuring PDF reader
+    """
+    Extract the text from a single PDF
+    """
     reader = PdfReader(file_path)
 
     text = ""
 
-    # Take the text from all the pages and then print them
     for page in reader.pages:
         page_text = page.extract_text()
         if page_text:
@@ -25,8 +25,11 @@ def extract_pdf(file_path: Path) -> str:
     
     return text
 
-# Run all the above functions
 def load_documents() -> List[str]:
+    """
+    Load all the documents and extract the PDFs and
+    compile into one single text
+    """
     pdf_files = get_pdf_files()
 
     documents = []
@@ -37,12 +40,44 @@ def load_documents() -> List[str]:
 
     return documents
 
+def chunk_text(text: str, chunk_size: int = 500, overlap: int = 50):
+    """
+    Split the text into overlapping chunks
+    """
+    chunks = []
+    start = 0
+    text_length = len(text)
+
+    while start < text_length:
+        end = start + chunk_size
+        chunk = text[start:end]
+        
+        chunks.append(chunk)
+
+        start += chunk_size - overlap
+    
+    return chunks
+
+def chunk_documents(documents):
+    """
+    Convert all documents into chunks
+    """
+    all_chunks = []
+
+    for doc in documents:
+        chunks = chunk_text(doc)
+        all_chunks.extend(chunks)
+    
+    return all_chunks
+
 # Testing for now
 if __name__ == "__main__":
     docs = load_documents()
+    chunks = chunk_documents(docs)
 
     print(f"Loaded {len(docs)} documents")
+    print(f"Generated {len(chunks)} chunks")
 
-    for i, doc in enumerate(docs):
-        print(f"\nDocument {i+1} preview:")
-        print(doc[:500])
+    for i, chunk in enumerate(chunks[:5]):
+        print(f"\nChunk {i+1}")
+        print(chunk[:200])
