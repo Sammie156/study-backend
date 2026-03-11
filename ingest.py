@@ -36,10 +36,15 @@ def load_documents() -> List[str]:
 
     for pdf in pdf_files:
         text = extract_pdf(pdf)
-        documents.append(text)
+        documents.append({
+            "text": text,
+            "source": pdf.name
+        })
 
     return documents
 
+# TODO: This is very basic and very bad. It currently chunks based on text size
+#       We need to chunk based on topics, headings, page and other things
 def chunk_text(text: str, chunk_size: int = 500, overlap: int = 50):
     """
     Split the text into overlapping chunks
@@ -62,13 +67,21 @@ def chunk_documents(documents):
     """
     Convert all documents into chunks
     """
-    all_chunks = []
+    chunked_docs = []
 
     for doc in documents:
-        chunks = chunk_text(doc)
-        all_chunks.extend(chunks)
-    
-    return all_chunks
+        text = doc["text"]
+        source = doc["source"]
+
+        chunks = chunk_text(text)
+
+        for chunk in chunks:
+            chunked_docs.append({
+                "text": chunk,
+                "source": source
+            })
+
+    return chunked_docs
 
 # Testing for now
 if __name__ == "__main__":
