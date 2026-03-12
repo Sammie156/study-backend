@@ -37,7 +37,13 @@ class VectorStore:
 
         results = []
 
+        print("FAISS index size: ", self.index.ntotal)
+        print("Metadata size: ", len(self.metadata))
+
         for idx in indices[0]:
+            if idx == -1:
+                continue
+
             if idx < len(self.metadata):
                 results.append(self.metadata[idx])
         

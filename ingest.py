@@ -2,6 +2,9 @@ from pathlib import Path    # File System handling
 from pypdf import PdfReader # Extract text from PDFs
 from typing import List     # Typing hints
 
+from embeddings import EmbeddingService
+from vector_store import VectorStore
+
 DATA_DIR = Path("data")
 
 def get_pdf_files() -> List[Path]:
@@ -83,14 +86,24 @@ def chunk_documents(documents):
 
     return chunked_docs
 
-# Testing for now
+# THE INGESTION PIPELINE!
 if __name__ == "__main__":
-    docs = load_documents()
-    chunks = chunk_documents(docs)
+    print("Starting Ingestion Pipeline")
 
-    print(f"Loaded {len(docs)} documents")
-    print(f"Generated {len(chunks)} chunks")
+    documents = load_documents()
+    print("Documents Loaded: ", len(documents))
 
-    for i, chunk in enumerate(chunks[:5]):
-        print(f"\nChunk {i+1}")
-        print(chunk[:200])
+    chunks = chunk_documents(documents)
+    print("Chunks created: ", len(chunks))
+
+    texts = [chunk["text"] for chunk in chunks]
+
+    embedder = EmbeddingService()
+    vectors = embedder.embed_documents(texts)
+
+    vector_store = VectorStore()
+    vector_store.add_vectors(vectors, chunks)
+
+    vector_store.save()
+
+    print("FAISS index built successfully!")
