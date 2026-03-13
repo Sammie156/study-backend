@@ -2,7 +2,7 @@ from rag_pipeline import RAGPipeline
 
 rag = RAGPipeline()
 
-question = input("Enter your question")
+question = input("Enter your question: ")
 response = rag.ask(question)
 
 print("\nAnswer:\n")

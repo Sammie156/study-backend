@@ -24,7 +24,18 @@ class RAGPipeline:
         """
         Prompt engineering
         """
-        context_text = "\n\n".join([c["text"] for c in contexts])
+
+        formatted_context = ""
+
+        for i, context in enumerate(contexts, start=1):
+            source = context["source"]
+            text = context["text"]
+
+            formatted_context += f"""
+[Source {i}: {source}]
+
+{text}
+            """
 
         prompt = f"""
 You are a helpful AI assistant.
@@ -32,13 +43,16 @@ You are a helpful AI assistant.
 Use the following study material to answer the question.
 
 Context:
-{context_text}
+{formatted_context}
 
 Question:
 {query}
 
-Answer clearly and cite the material when relevant. 
-Moreover, make the answers structured and understandable with no need to refer the PDF sources.
+Instructions:
+- Answer clearly.
+- Cite the sources like [Source 1], [Source 2].
+- Do not invent information outside the context.
+- Moreover, make the answers structured and understandable with no need to refer the PDF sources.
 """
 
         return prompt
