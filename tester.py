@@ -2,7 +2,8 @@ from rag_pipeline import RAGPipeline
 
 rag = RAGPipeline()
 
-response = rag.ask("What is data coupling and stamp coupling?")
+question = input("Enter your question: ")
+response = rag.ask(question)
 
 print("\nAnswer:\n")
 print(response["answer"])
