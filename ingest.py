@@ -46,8 +46,9 @@ def load_documents() -> List[str]:
 
     return documents
 
-# TODO: This is very basic and very bad. It currently chunks based on text size
-#       We need to chunk based on topics, headings, page and other things
+# FIXME: This needs to changed to chunk_paragraphs().
+#        Let us have this function for now, for learning, but
+#        we are currently using chunk_paragraph()
 def chunk_text(text: str, chunk_size: int = 500, overlap: int = 50):
     """
     Split the text into overlapping chunks
@@ -66,6 +67,32 @@ def chunk_text(text: str, chunk_size: int = 500, overlap: int = 50):
     
     return chunks
 
+def chunk_paragraph(text: str, chunk_size: int = 500, overlap: int = 50):
+    """
+    Paragraph-aware chunking.
+    Slightly better, but still could be much better.
+    """
+    paragraphs = text.split("\n\n")
+
+    paragraphs = [p.strip() for p in paragraphs if len(p.strip()) > 40]
+
+    chunks = []
+    current_chunk = ""
+
+    for paragraph in paragraphs:
+        
+        if len(current_chunk) + len(paragraph) > chunk_size:
+            chunks.append(current_chunk.strip())
+
+            current_chunk = current_chunk[-overlap:] + " "
+        
+        current_chunk += paragraph + "\n\n"
+    
+    if current_chunk:
+        chunks.append(current_chunk.strip())
+
+    return chunks
+
 def chunk_documents(documents):
     """
     Convert all documents into chunks
@@ -76,7 +103,7 @@ def chunk_documents(documents):
         text = doc["text"]
         source = doc["source"]
 
-        chunks = chunk_text(text)
+        chunks = chunk_paragraph(text)
 
         for chunk in chunks:
             chunked_docs.append({
