@@ -66,8 +66,8 @@ Instructions:
 
         return response.text
 
-    def ask(self, question):
-        contexts = self.retrieve_context(question)
+    def ask(self, question, k=5):
+        contexts = self.retrieve_context(question, k)
 
         prompt = self.build_prompt(question, contexts)
 
