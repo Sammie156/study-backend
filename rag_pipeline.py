@@ -1,7 +1,8 @@
 from google import genai
+
+from config import GEMINI_API_KEY, GEMINI_MODEL
 from embeddings import EmbeddingService
 from vector_store import VectorStore
-from config import GEMINI_API_KEY
 
 
 class RAGPipeline:
@@ -12,7 +13,7 @@ class RAGPipeline:
         self.vector_store.load()
 
         self.client = genai.Client(api_key=GEMINI_API_KEY)
-    
+
     def retrieve_context(self, query, k=5):
         query_vector = self.embedder.embed_query(query)
 
@@ -56,15 +57,15 @@ Instructions:
 """
 
         return prompt
-    
+
     def generate_answer(self, prompt):
         response = self.client.models.generate_content(
-            model="gemini-2.5-flash-lite", # I keep changing this depending on Google's mood
-            contents=prompt
+            model=GEMINI_MODEL,
+            contents=prompt,
         )
 
         return response.text
-    
+
     def ask(self, question):
         contexts = self.retrieve_context(question)
 
@@ -72,7 +73,4 @@ Instructions:
 
         answer = self.generate_answer(prompt)
 
-        return {
-            "answer": answer,
-            "sources": contexts
-        }
+        return {"answer": answer, "sources": contexts}

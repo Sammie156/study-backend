@@ -1,17 +1,24 @@
-from pathlib import Path    # File System handling
-from pypdf import PdfReader # Extract text from PDFs
-from typing import List     # Typing hints
+import logging
+from pathlib import Path  # File System handling
+from typing import List  # Typing hints
+
+from pypdf import PdfReader  # Extract text from PDFs
 
 from embeddings import EmbeddingService
 from vector_store import VectorStore
 
+logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
+logger = logging.getLogger(__name__)
+
 DATA_DIR = Path("data")
+
 
 def get_pdf_files() -> List[Path]:
     """
     Get all the PDF files inside the data directory
     """
     return list(DATA_DIR.glob("*.pdf"))
+
 
 def extract_pdf(file_path: Path) -> str:
     """
@@ -25,8 +32,9 @@ def extract_pdf(file_path: Path) -> str:
         page_text = page.extract_text()
         if page_text:
             text += page_text + "\n"
-    
+
     return text
+
 
 def load_documents() -> List[str]:
     """
@@ -39,33 +47,10 @@ def load_documents() -> List[str]:
 
     for pdf in pdf_files:
         text = extract_pdf(pdf)
-        documents.append({
-            "text": text,
-            "source": pdf.name
-        })
+        documents.append({"text": text, "source": pdf.name})
 
     return documents
 
-# FIXME: This needs to changed to chunk_paragraphs().
-#        Let us have this function for now, for learning, but
-#        we are currently using chunk_paragraph()
-def chunk_text(text: str, chunk_size: int = 500, overlap: int = 50):
-    """
-    Split the text into overlapping chunks
-    """
-    chunks = []
-    start = 0
-    text_length = len(text)
-
-    while start < text_length:
-        end = start + chunk_size
-        chunk = text[start:end]
-        
-        chunks.append(chunk)
-
-        start += chunk_size - overlap
-    
-    return chunks
 
 def chunk_paragraph(text: str, chunk_size: int = 500, overlap: int = 50):
     """
@@ -80,18 +65,18 @@ def chunk_paragraph(text: str, chunk_size: int = 500, overlap: int = 50):
     current_chunk = ""
 
     for paragraph in paragraphs:
-        
         if len(current_chunk) + len(paragraph) > chunk_size:
             chunks.append(current_chunk.strip())
 
             current_chunk = current_chunk[-overlap:] + " "
-        
+
         current_chunk += paragraph + "\n\n"
-    
+
     if current_chunk:
         chunks.append(current_chunk.strip())
 
     return chunks
+
 
 def chunk_documents(documents):
     """
@@ -106,22 +91,20 @@ def chunk_documents(documents):
         chunks = chunk_paragraph(text)
 
         for chunk in chunks:
-            chunked_docs.append({
-                "text": chunk,
-                "source": source
-            })
+            chunked_docs.append({"text": chunk, "source": source})
 
     return chunked_docs
 
+
 # THE INGESTION PIPELINE!
 if __name__ == "__main__":
-    print("Starting Ingestion Pipeline")
+    logger.info("Starting Ingestion Pipeline")
 
     documents = load_documents()
-    print("Documents Loaded: ", len(documents))
+    logger.info("Documents Loaded: %s", len(documents))
 
     chunks = chunk_documents(documents)
-    print("Chunks created: ", len(chunks))
+    logger.info("Chunks created: %s", len(chunks))
 
     texts = [chunk["text"] for chunk in chunks]
 
@@ -133,4 +116,4 @@ if __name__ == "__main__":
 
     vector_store.save()
 
-    print("FAISS index built successfully!")
+    logger.info("FAISS index built successfully!")
