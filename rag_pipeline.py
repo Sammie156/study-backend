@@ -21,7 +21,7 @@ class RAGPipeline:
 
         return results
 
-    def build_prompt(self, query, contexts):
+    def build_prompt(self, query, contexts, history=None):
         """
         Prompt engineering
         """
